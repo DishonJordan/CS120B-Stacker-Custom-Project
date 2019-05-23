@@ -4,6 +4,8 @@
 //#include "io.c"
 //#include "ledmatrix7219d88/ledmatrix7219d88.h"
 
+
+#pragma region TimerCode
 volatile unsigned char TimerFlag = 0;
 unsigned long _avr_timer_M = 1;
 unsigned long _avr_timer_cntcurr = 0;
@@ -37,13 +39,14 @@ void TimerSet(unsigned long M) {
 	_avr_timer_M = M;
 	_avr_timer_cntcurr = _avr_timer_M;
 }
+#pragma endregion TimerCode
 
 //GLOBAL VARIABLES
 #define MAX_LEVEL 16;
 unsigned char grid[MAX_LEVEL];
 unsigned char speeds[MAX_LEVEL] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 unsigned char sizes[MAX_LEVEL] = {3,3,3,3,3,2,2,2,2,2,1,1,1,1,1,1};
-unsigned char level, curr_size, curr_speed, curr_row, button, reset, oscillate;
+unsigned char level, curr_size, curr_speed, curr_row, button, reset, move;
 
 //Checks to see if the stack landed on top of the previous stack
 unsigned char checkHits(unsigned char row, unsigned char lvl){
@@ -93,17 +96,23 @@ void Tick_GameLogic(){
 
 	switch(GAMESTATE){ //State Transitions
 		case GL_Start: 
-		GAMESTATE = (button)? Wait : GL_Start; break;
+			GAMESTATE = (button)? Wait : GL_Start; break;
 		case Wait:
-			if(button){
-				GAMESTATE = Wait;
+			if(button){ GAMESTATE = Wait;
 			}else{
-				GAMESTATE = Oscillate;
-				curr_row = 0x38;
+			GAMESTATE = Oscillate;
+			curr_row = 0x38;
+			move = 1;
 			}
+
 		break;
 		case Oscillate: 
-			GAMESTATE = (button)? Press : Oscillate; break;
+			if(button){ 
+			GAMESTATE = Press;
+			move = 0;
+			}else{ GAMESTATE = Oscillate;}
+
+		break;
 		case Press:
 			//TODO
 		break;
@@ -120,14 +129,13 @@ void Tick_GameLogic(){
 			level = 0;
 			curr_size = 0;
 			curr_speed = speeds[0];
-			oscillate = 0;
+			move = 0;
 			curr_row = 0x00;
 		break;
 		case Wait:
 		break;
 		case Oscillate:
-			oscillate = true;
-			//TODO
+			move = true;
 		break;
 		case Press:
 		//TODO
