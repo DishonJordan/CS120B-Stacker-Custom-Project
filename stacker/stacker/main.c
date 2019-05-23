@@ -37,9 +37,7 @@ enum DisplaySM{DS_Start,Display}DISPLAYSTATE;
 
 
 int main(void)
-{
-	DDRA = 
-	
+{	
 	
     while (1) 
     {
