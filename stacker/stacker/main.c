@@ -43,7 +43,7 @@ void TimerSet(unsigned long M) {
 unsigned char grid[MAX_LEVEL];
 unsigned char speeds[MAX_LEVEL] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 unsigned char sizes[MAX_LEVEL] = {3,3,3,3,3,2,2,2,2,2,1,1,1,1,1,1};
-unsigned char level, curr_size, curr_speed, curr_row, button, reset,oscillate;
+unsigned char level, curr_size, curr_speed, curr_row, button, reset, oscillate;
 
 //Checks to see if the stack landed on top of the previous stack
 unsigned char checkHits(unsigned char row, unsigned char lvl){
@@ -66,7 +66,7 @@ unsigned char getNewSize(unsigned char row, unsigned char lvl){
 	
 	return count;
 }
-//
+//Assigns current row to grid
 unsigned char setCurrentRow(unsigned char size,unsigned char lvl){
 	unsigned char new_size = getNewSize(curr_row,lvl);
 	//TODO
@@ -87,46 +87,31 @@ void clearGrid(){
 
 //STATE ENUMS
 enum GameLogicSM{GL_Start,Wait,Oscillate,Press,End}GAMESTATE;
-enum
+enum MovementSM{Mm_Wait,Align,Left,Right}MOVEMENTSTATE;
 
 void Tick_GameLogic(){
 
 	switch(GAMESTATE){ //State Transitions
-		case GL_Start:
-			GAMESTATE = (button)? Wait : GL_Start;
-		break;
+		case GL_Start: 
+		GAMESTATE = (button)? Wait : GL_Start; break;
 		case Wait:
-			if(reset){
-				GAMESTATE = GL_Start;
-			}else if(button){
+			if(button){
 				GAMESTATE = Wait;
 			}else{
 				GAMESTATE = Oscillate;
 				curr_row = 0x38;
 			}
 		break;
-		case Oscillate:
-			if(reset){
-				GAMESTATE = GL_Start;
-			}else if(button){
-				GAMESTATE = Press;
-			}else{
-				GAMESTATE = Oscillate;
-			}
-		break;
+		case Oscillate: 
+			GAMESTATE = (button)? Press : Oscillate; break;
 		case Press:
-			if(reset){
-				GAMESTATE = GL_Start;
-			}
+			//TODO
 		break;
 		case End:
-			if(reset){
-				GAMESTATE = GL_Start;
-			}
+			//TODO
 		break;
-		default:
-		GAMESTATE = GL_Start;
-		break;
+		default: 
+		GAMESTATE = GL_Start; break;
 	}
 
 	switch(GAMESTATE){ //State Actions
@@ -135,23 +120,35 @@ void Tick_GameLogic(){
 			level = 0;
 			curr_size = 0;
 			curr_speed = speeds[0];
+			oscillate = 0;
+			curr_row = 0x00;
 		break;
 		case Wait:
 		break;
 		case Oscillate:
+			oscillate = true;
+			//TODO
 		break;
 		case Press:
+		//TODO
 		break;
 		case End:
+		//TODO
 		break;
 		default:break;
 	}
+}
 
-
-
+void Tick_Movement){
+//TODO
 
 }
 
+void checkReset(){
+	if(reset){
+		GAMESTATE = GL_Start;
+	}
+}
 int main(void)
 {	
 	DDRA = 0x00; PORTA = 0xFF;
@@ -169,7 +166,9 @@ int main(void)
 		button = ~PINA & 0x01;
 		reset  = ~PINA & 0x02;
 
+		checkReset();
 		Tick_GameLogic();
+		Tick_Movement();
 
 		while(!TimerFlag);
 		TimerFlag = 0;
