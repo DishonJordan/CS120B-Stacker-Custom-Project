@@ -4,7 +4,6 @@
 //#include "io.c"
 //#include "ledmatrix7219d88/ledmatrix7219d88.h"
 
-
 #pragma region TimerCode
 volatile unsigned char TimerFlag = 0;
 unsigned long _avr_timer_M = 1;
@@ -41,46 +40,58 @@ void TimerSet(unsigned long M) {
 }
 #pragma endregion TimerCode
 
-//GLOBAL VARIABLES
-#define MAX_LEVEL 16;
+#define MAX_LEVEL 16
+
 unsigned char grid[MAX_LEVEL];
 unsigned char speeds[MAX_LEVEL] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 unsigned char sizes[MAX_LEVEL] = {3,3,3,3,3,2,2,2,2,2,1,1,1,1,1,1};
 unsigned char level, curr_size, curr_speed, curr_row, button, reset, move;
 
-//Checks to see if the stack landed on top of the previous stack
-unsigned char checkHits(unsigned char row, unsigned char lvl){
-	if(lvl == 0)
-		return 0x01;
-	
-	return !(row & grid[lvl - 1]);
-}
-//Returns the size of the new blocks
-unsigned char getNewSize(unsigned char row, unsigned char lvl){
+unsigned char checkHitsAndGetSize(unsigned char row, unsigned char lvl){
+	//account for at a certain level the size max goes down
 	unsigned char count = 0;
-	unsigned char temp = row & grid[lvl - 1];
+	unsigned char temp = row & grid[level - 1];
 	
-	while(temp != 0){
-		if((temp & 0x01) == 1){
+	if(lvl == 0){
+		return 3;
+	}
+	
+	while(temp != 0x00){
+		if((temp & 0x01) == 0x01){
 			count++;
 		}
 		temp = temp >> 1;
 	}
+
+	switch(count){
+		case 0:
+		case 1:
+			return count;
+		break;
+		case 2:
+			if(lvl >= 9)
+				return 1;
+			else
+				return 2;
+		break;
+		case 3:
+			if(lvl >= 4)
+				return 2;
+			else
+				return 3;
+		break;
+		default:
+		//DEBUG LED
+		break;
+	}
+
+
 	
 	return count;
+	
 }
-//Assigns current row to grid
-unsigned char setCurrentRow(unsigned char size,unsigned char lvl){
-	unsigned char new_size = getNewSize(curr_row,lvl);
-	//TODO
-	return new_size;
-}
-void displayGrid(){
-	for(unsigned char i = 0; i < MAX_LEVEL/8; i++){
-		for(unsigned char j = 0; j < 8; i++){
-			//ledmatrix7219d88_setrow(i, j, grid[8*i + j]);
-		}
-	}
+void setGridRow(unsigned char row, unsigned char lvl){
+	grid[lvl] = row;
 }
 void clearGrid(){
 	for(unsigned char i = 0; i < MAX_LEVEL; i++){
@@ -89,8 +100,8 @@ void clearGrid(){
 }
 
 //STATE ENUMS
-enum GameLogicSM{GL_Start,Wait,Oscillate,Press,End}GAMESTATE;
-enum MovementSM{Mm_Wait,Align,Left,Right}MOVEMENTSTATE;
+enum GameLogicSM{GL_Start,Wait,Oscillate,Press,Win,Lose} GAMESTATE;
+enum MovementSM{Mm_Wait,Align,Left,Right} MOVEMENTSTATE;
 
 void Tick_GameLogic(){
 
@@ -102,7 +113,6 @@ void Tick_GameLogic(){
 			}else{
 			GAMESTATE = Oscillate;
 			curr_row = 0x38;
-			move = 1;
 			}
 
 		break;
@@ -114,10 +124,24 @@ void Tick_GameLogic(){
 
 		break;
 		case Press:
-			//TODO
+			curr_size = checkHitsAndGetSize(curr_row,level);
+
+			if(curr_size > 0 && level == 15){
+				GAMESTATE = Win;
+			}else if(curr_size > 0 && !(level == 15)){ //Go to next level
+				setGridRow(curr_row,level);
+				level++;
+				curr_speed = speeds[level];
+				GAMESTATE = Oscillate;
+			}else{ 
+				GAMESTATE = Lose;
+			}
 		break;
-		case End:
-			//TODO
+		case Win:
+			GAMESTATE = Win;
+		break;
+		case Lose:
+			GAMESTATE = Lose;
 		break;
 		default: 
 		GAMESTATE = GL_Start; break;
@@ -127,7 +151,7 @@ void Tick_GameLogic(){
 		case GL_Start:
 			clearGrid();
 			level = 0;
-			curr_size = 0;
+			curr_size = 3;
 			curr_speed = speeds[0];
 			move = 0;
 			curr_row = 0x00;
@@ -135,21 +159,46 @@ void Tick_GameLogic(){
 		case Wait:
 		break;
 		case Oscillate:
-			move = true;
+			move = 1;
 		break;
 		case Press:
+		break;
+		case Win:
 		//TODO
 		break;
-		case End:
+		case Lose:
 		//TODO
 		break;
 		default:break;
 	}
 }
 
-void Tick_Movement){
-//TODO
-
+void Tick_Movement(){
+	switch(MOVEMENTSTATE){ //State Transitions
+		case Mm_Wait:
+			MOVEMENTSTATE = move? Align: Mm_Wait;
+		break;
+		case Align:
+		break;
+		case Left:
+		break;
+		case Right:
+		break;
+		default:
+		break;
+	}
+	switch(MOVEMENTSTATE){//State Actions
+		case Mm_Wait:
+		break;
+		case Align:
+		break;
+		case Left:
+		break;
+		case Right:
+		break;
+		default:
+		break;
+	}
 }
 
 void checkReset(){
@@ -157,6 +206,7 @@ void checkReset(){
 		GAMESTATE = GL_Start;
 	}
 }
+
 int main(void)
 {	
 	DDRA = 0x00; PORTA = 0xFF;
