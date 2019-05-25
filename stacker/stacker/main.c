@@ -1,8 +1,9 @@
 #include <avr/io.h>
 #include <stdio.h>
 #include <avr/interrupt.h>
-//#include "io.c"
-//#include "ledmatrix7219d88/ledmatrix7219d88.h"
+#include "io.c"
+#include "ledmatrix7219d88.c"
+#include "max7219.c"
 
 #pragma region TimerCode
 volatile unsigned char TimerFlag = 0;
@@ -40,12 +41,13 @@ void TimerSet(unsigned long M) {
 }
 #pragma endregion TimerCode
 
-#define MAX_LEVEL 16
+#define MAX_LEVEL 32
 
 unsigned char grid[MAX_LEVEL];
-unsigned char speeds[MAX_LEVEL] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-unsigned char sizes[MAX_LEVEL] = {3,3,3,3,3,2,2,2,2,2,1,1,1,1,1,1};
-unsigned char level, curr_size, curr_speed, curr_row, button, reset, move;
+unsigned char speeds[MAX_LEVEL] = {20,20,19,19,18,18,17,17,16,16,15,15,14,14,13,13,12,12,11,11,10,10,9,9,8,8,7,7,6,6,5,4}; //In terms of a 10ms Period
+unsigned char sizes[MAX_LEVEL] = {3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1};
+unsigned char row_start[3] = {0x08,0x18,0x38};
+unsigned char level, curr_size, curr_speed, curr_row, button, reset, move,cnt;
 
 unsigned char checkHitsAndGetSize(unsigned char row, unsigned char lvl){
 	//account for at a certain level the size max goes down
@@ -69,13 +71,13 @@ unsigned char checkHitsAndGetSize(unsigned char row, unsigned char lvl){
 			return count;
 		break;
 		case 2:
-			if(lvl >= 9)
+			if(lvl >= 25)
 				return 1;
 			else
 				return 2;
 		break;
 		case 3:
-			if(lvl >= 4)
+			if(lvl >= 14)
 				return 2;
 			else
 				return 3;
@@ -91,17 +93,34 @@ unsigned char checkHitsAndGetSize(unsigned char row, unsigned char lvl){
 	
 }
 void setGridRow(unsigned char row, unsigned char lvl){
-	grid[lvl] = row;
+	if(lvl > 0)
+		grid[lvl] = row & grid[lvl - 1];
+	else
+		grid[lvl] = row;
 }
 void clearGrid(){
 	for(unsigned char i = 0; i < MAX_LEVEL; i++){
 		grid[i] = 0x00;
 	}
 }
+unsigned char GetBit(unsigned char x, unsigned char k) {
+	return ((x & (0x01 << k)) != 0);
+}
+void displayColumn(unsigned char col, unsigned char value){
+
+	unsigned char start_loc = 8*col % 64;
+	unsigned char matrix_num = 8*col / 64;
+
+
+	for(int i = 0; i < 8; i++){
+		ledmatrix7219d88_setled(matrix_num,start_loc + i, GetBit(value,i));
+	}
+
+}
 
 //STATE ENUMS
 enum GameLogicSM{GL_Start,Wait,Oscillate,Press,Win,Lose} GAMESTATE;
-enum MovementSM{Mm_Wait,Align,Left,Right} MOVEMENTSTATE;
+enum MovementSM{Mm_Start,Right,Left}MOVEMENTSTATE;
 
 void Tick_GameLogic(){
 
@@ -112,7 +131,7 @@ void Tick_GameLogic(){
 			if(button){ GAMESTATE = Wait;
 			}else{
 			GAMESTATE = Oscillate;
-			curr_row = 0x38;
+			curr_row = row_start[curr_size - 1];
 			}
 
 		break;
@@ -126,13 +145,15 @@ void Tick_GameLogic(){
 		case Press:
 			curr_size = checkHitsAndGetSize(curr_row,level);
 
-			if(curr_size > 0 && level == 15){
+			if(curr_size > 0 && level == (MAX_LEVEL - 1)){
 				GAMESTATE = Win;
-			}else if(curr_size > 0 && !(level == 15)){ //Go to next level
+			}else if(curr_size > 0 && !(level == (MAX_LEVEL - 1))){ //Go to next level
 				setGridRow(curr_row,level);
+				displayColumn(level,grid[level]);
 				level++;
 				curr_speed = speeds[level];
-				GAMESTATE = Oscillate;
+				curr_row = row_start[curr_size - 1];
+				GAMESTATE = Wait;
 			}else{ 
 				GAMESTATE = Lose;
 			}
@@ -150,11 +171,15 @@ void Tick_GameLogic(){
 	switch(GAMESTATE){ //State Actions
 		case GL_Start:
 			clearGrid();
+			for(unsigned char i = 0; i < 4; i++){
+				ledmatrix7219d88_resetmatrix(i);
+			}
 			level = 0;
-			curr_size = 3;
+			curr_size = sizes[level];
 			curr_speed = speeds[0];
 			move = 0;
 			curr_row = 0x00;
+			cnt = 0;
 		break;
 		case Wait:
 		break;
@@ -162,39 +187,68 @@ void Tick_GameLogic(){
 			move = 1;
 		break;
 		case Press:
+			move = 0;
 		break;
 		case Win:
-		//TODO
+			move = 0;
 		break;
 		case Lose:
-		//TODO
+			move = 0;
 		break;
 		default:break;
 	}
 }
 
-void Tick_Movement(){
-	switch(MOVEMENTSTATE){ //State Transitions
-		case Mm_Wait:
-			MOVEMENTSTATE = move? Align: Mm_Wait;
-		break;
-		case Align:
-		break;
-		case Left:
+void MovementSM_Tick(){
+
+	switch(MOVEMENTSTATE){ //Transitions
+		case Mm_Start:
+			MOVEMENTSTATE = move? Right: Mm_Start;
 		break;
 		case Right:
+		if(!move){
+			MOVEMENTSTATE = Mm_Start;
+		}else if(curr_row & 0x01){
+			MOVEMENTSTATE = Left;
+			cnt = 0;
+		}else{
+			MOVEMENTSTATE = Right;
+		}
+		break;
+		case Left:
+		if(!move){
+			MOVEMENTSTATE = Mm_Start;
+		}else if(curr_row & 0x80){
+			MOVEMENTSTATE = Right;
+			cnt = 0;
+		}else{
+			MOVEMENTSTATE = Left;
+		}
 		break;
 		default:
+		MOVEMENTSTATE = Mm_Start;
 		break;
 	}
-	switch(MOVEMENTSTATE){//State Actions
-		case Mm_Wait:
-		break;
-		case Align:
-		break;
-		case Left:
+	switch(MOVEMENTSTATE){ //Actions
+		case Mm_Start:
 		break;
 		case Right:
+		if(move){
+			if(cnt % speeds[level] == 0){
+				curr_row = curr_row >> 1;
+				displayColumn(level,curr_row);
+			}
+			cnt++;
+		}
+		break;
+		case Left:
+		if(move){
+			if(cnt % speeds[level] == 0){
+				curr_row = curr_row << 1;
+				displayColumn(level,curr_row);
+			}
+			cnt++;
+		}
 		break;
 		default:
 		break;
@@ -211,13 +265,19 @@ int main(void)
 {	
 	DDRA = 0x00; PORTA = 0xFF;
 	DDRB = 0xFF; PORTB = 0x00;
+	DDRC = 0xFF; PORTC = 0x00;
+	DDRD = 0xFF; PORTD = 0x00;
 
-	TimerSet(100);
+	ledmatrix7219d88_init();
+	for(unsigned char i = 0; i < 4; i++){
+		ledmatrix7219d88_setintensity(i,1);
+	}
+
+	TimerSet(10);
 	TimerOn();
 
-	//ledmatrix7219d88_init();
-
 	GAMESTATE = GL_Start;
+	MOVEMENTSTATE = Mm_Start;
 
     while (1) 
     {
@@ -226,8 +286,10 @@ int main(void)
 
 		checkReset();
 		Tick_GameLogic();
-		Tick_Movement();
+		MovementSM_Tick();
 
+		PORTC = GAMESTATE;
+		PORTB = curr_size;
 		while(!TimerFlag);
 		TimerFlag = 0;
 
