@@ -49,6 +49,7 @@ void max7219_send(uint8_t icnum, uint8_t reg, uint8_t data) {
 		//send info to current ic
 		max7219_shiftout(reg); //send reg
 		max7219_shiftout(data); //send data
+
 		//send no op to previous ic
 		for(i=0; i<icnum; i++) {
 			max7219_shiftout(MAX7218_REGNOOP); //no op reg

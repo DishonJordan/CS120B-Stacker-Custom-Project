@@ -1,5 +1,3 @@
-//ledmatrix7219d88 output example
-
 #include <stdio.h>
 #include <avr/io.h>
 #include <util/delay.h>
@@ -8,86 +6,69 @@
 #include "max7219.h"
 #include "max7219.c"
 
+void move_test(unsigned char num, unsigned char column){
+		ledmatrix7219d88_setintensity(num,2);
+		ledmatrix7219d88_setrow(num,0,column);
+		ledmatrix7219d88_setrow(num,1,column);
+		ledmatrix7219d88_setrow(num,2,column);
+		_delay_ms(600);
+		ledmatrix7219d88_resetmatrix(num);
+		ledmatrix7219d88_setrow(num,1,column);
+		ledmatrix7219d88_setrow(num,2,column);
+		ledmatrix7219d88_setrow(num,3,column);
+		_delay_ms(600);
+		ledmatrix7219d88_resetmatrix(num);
+		ledmatrix7219d88_setrow(num,2,column);
+		ledmatrix7219d88_setrow(num,3,column);
+		ledmatrix7219d88_setrow(num,4,column);
+		_delay_ms(600);
+		ledmatrix7219d88_resetmatrix(num);
+		ledmatrix7219d88_setrow(num,3,column);
+		ledmatrix7219d88_setrow(num,4,column);
+		ledmatrix7219d88_setrow(num,5,column);
+		_delay_ms(600);
+		ledmatrix7219d88_resetmatrix(num);
+		ledmatrix7219d88_setrow(num,4,column);
+		ledmatrix7219d88_setrow(num,5,column);
+		ledmatrix7219d88_setrow(num,6,column);
+		_delay_ms(600);
+		ledmatrix7219d88_resetmatrix(num);
+		ledmatrix7219d88_setrow(num,5,column);
+		ledmatrix7219d88_setrow(num,6,column);
+		ledmatrix7219d88_setrow(num,7,column);
+		_delay_ms(600);
+		ledmatrix7219d88_resetmatrix(num);
+		ledmatrix7219d88_setrow(num,4,column);
+		ledmatrix7219d88_setrow(num,5,column);
+		ledmatrix7219d88_setrow(num,6,column);
+		_delay_ms(600);
+		ledmatrix7219d88_resetmatrix(num);
+		ledmatrix7219d88_setrow(num,3,column);
+		ledmatrix7219d88_setrow(num,4,column);
+		ledmatrix7219d88_setrow(num,5,column);
+		_delay_ms(600);
+		ledmatrix7219d88_resetmatrix(num);
+		ledmatrix7219d88_setrow(num,2,column);
+		ledmatrix7219d88_setrow(num,3,column);
+		ledmatrix7219d88_setrow(num,4,column);
+		_delay_ms(600);
+		ledmatrix7219d88_resetmatrix(num);
+		ledmatrix7219d88_setrow(num,1,column);
+		ledmatrix7219d88_setrow(num,2,column);
+		ledmatrix7219d88_setrow(num,3,column);
+		_delay_ms(600);
+		ledmatrix7219d88_resetmatrix(num);
+}
+
 int main(void) {
-	//init ledmatrix
-	ledmatrix7219d88_init();
 	DDRD = 0xFF; PORTD = 0x00;
-
-	uint8_t ledmatrix = 0;
-
-	//display test rows
-	uint8_t rows[8] = {
-			0b10000001,
-			0b01000010,
-			0b00100100,
-			0b00011000,
-			0b00011000,
-			0b00100100,
-			0b01000010,
-			0b10000001
-	};
-	
-
-	ledmatrix = 0;
-	ledmatrix7219d88_setrow(ledmatrix, 0, 0x01);
-	ledmatrix7219d88_setrow(ledmatrix, 1, 0x01);
-	ledmatrix7219d88_setrow(ledmatrix, 2, 0x01);
-	ledmatrix7219d88_setrow(ledmatrix, 3, 0x01);
-	ledmatrix7219d88_setrow(ledmatrix, 4, 0x01);
-	ledmatrix7219d88_setrow(ledmatrix, 5, 0x01);
-	ledmatrix7219d88_setrow(ledmatrix, 6, 0x01);
-	ledmatrix7219d88_setrow(ledmatrix, 7, 0x01);
-	_delay_ms(2000);
-	ledmatrix7219d88_setrow(ledmatrix, 0, 0x02);
-	ledmatrix7219d88_setrow(ledmatrix, 1, 0x02);
-	ledmatrix7219d88_setrow(ledmatrix, 2, 0x02);
-	ledmatrix7219d88_setrow(ledmatrix, 3, 0x02);
-	ledmatrix7219d88_setrow(ledmatrix, 4, 0x02);
-	ledmatrix7219d88_setrow(ledmatrix, 5, 0x02);
-	ledmatrix7219d88_setrow(ledmatrix, 6, 0x02);
-	ledmatrix7219d88_setrow(ledmatrix, 7, 0x02);
-	
-	//display test rows
-	//ledmatrix = 0;
-	//ledmatrix7219d88_setrow(ledmatrix, 0, 0b10000000);
-	//ledmatrix7219d88_setrow(ledmatrix, 1, 0b01000000);
-	//ledmatrix7219d88_setrow(ledmatrix, 2, 0b00100000);
-	//ledmatrix7219d88_setrow(ledmatrix, 3, 0b00010000);
-	//ledmatrix7219d88_setrow(ledmatrix, 4, 0b00001000);
-	//ledmatrix7219d88_setrow(ledmatrix, 5, 0b00000100);
-	//ledmatrix7219d88_setrow(ledmatrix, 6, 0b00000010);
-	//ledmatrix7219d88_setrow(ledmatrix, 7, 0b00000001);
-	//ledmatrix = 1;
-	//ledmatrix7219d88_setrow(ledmatrix, 0, 0b10101010);
-	//ledmatrix7219d88_setrow(ledmatrix, 1, 0b01010101);
-	//ledmatrix7219d88_setrow(ledmatrix, 2, 0b10101010);
-	//ledmatrix7219d88_setrow(ledmatrix, 3, 0b01010101);
-	//ledmatrix7219d88_setrow(ledmatrix, 4, 0b10101010);
-	//ledmatrix7219d88_setrow(ledmatrix, 5, 0b01010101);
-	//ledmatrix7219d88_setrow(ledmatrix, 6, 0b10101010);
-	//ledmatrix7219d88_setrow(ledmatrix, 7, 0b01010101);
-	//ledmatrix = 2;
-	//ledmatrix7219d88_setrow(ledmatrix, 0, 0b10000000);
-	//ledmatrix7219d88_setrow(ledmatrix, 1, 0b01000000);
-	//ledmatrix7219d88_setrow(ledmatrix, 2, 0b00100000);
-	//ledmatrix7219d88_setrow(ledmatrix, 3, 0b00010000);
-	//ledmatrix7219d88_setrow(ledmatrix, 4, 0b00001000);
-	//ledmatrix7219d88_setrow(ledmatrix, 5, 0b00000100);
-	//ledmatrix7219d88_setrow(ledmatrix, 6, 0b00000010);
-	//ledmatrix7219d88_setrow(ledmatrix, 7, 0b00000001);
-	//ledmatrix = 3;
-	//ledmatrix7219d88_setrow(ledmatrix, 0, 0b10101010);
-	//ledmatrix7219d88_setrow(ledmatrix, 1, 0b01010101);
-	//ledmatrix7219d88_setrow(ledmatrix, 2, 0b10101010);
-	//ledmatrix7219d88_setrow(ledmatrix, 3, 0b01010101);
-	//ledmatrix7219d88_setrow(ledmatrix, 4, 0b10101010);
-	//ledmatrix7219d88_setrow(ledmatrix, 5, 0b01010101);
-	//ledmatrix7219d88_setrow(ledmatrix, 6, 0b10101010);
-	//ledmatrix7219d88_setrow(ledmatrix, 7, 0b01010101);
-	//_delay_ms(2000);
-	//ledmatrix7219d88_resetmatrix(0);
-	//ledmatrix7219d88_resetmatrix(1);
-	//ledmatrix7219d88_resetmatrix(2);
-	//ledmatrix7219d88_resetmatrix(3);
-
+	unsigned char k = 1;
+	ledmatrix7219d88_init();
+	while(1){
+	for(unsigned char i = 0; i < 4; i++){
+		for(unsigned char j = 0; j < 128; j+=2){
+			move_test(i,j);
+			}
+		}
+	}
 }
