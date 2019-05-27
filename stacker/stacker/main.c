@@ -125,51 +125,51 @@ enum MovementSM{Mm_Start,Right,Left}MOVEMENTSTATE;
 void Tick_GameLogic(){
 
 	switch(GAMESTATE){ //State Transitions
-		case GL_Start: 
-			GAMESTATE = (button)? Wait : GL_Start; break;
+		case GL_Start:
+		GAMESTATE = (button)? Wait : GL_Start; break;
 		case Wait:
-			if(button){ GAMESTATE = Wait;
+		if(button){ GAMESTATE = Wait;
 			}else{
 			GAMESTATE = Oscillate;
 			curr_row = row_start[curr_size - 1];
-			}
+		}
 
 		break;
-		case Oscillate: 
-			if(button){ 
+		case Oscillate:
+		if(button){
 			GAMESTATE = Press;
 			move = 0;
 			}else{ GAMESTATE = Oscillate;}
 
-		break;
-		case Press:
+			break;
+			case Press:
 			curr_size = checkHitsAndGetSize(curr_row,level);
 
 			if(curr_size > 0 && level == (MAX_LEVEL - 1)){
 				GAMESTATE = Win;
-			}else if(curr_size > 0 && !(level == (MAX_LEVEL - 1))){ //Go to next level
+				}else if(curr_size > 0 && !(level == (MAX_LEVEL - 1))){ //Go to next level
 				setGridRow(curr_row,level);
 				displayColumn(level,grid[level]);
 				level++;
 				curr_speed = speeds[level];
 				curr_row = row_start[curr_size - 1];
 				GAMESTATE = Wait;
-			}else{ 
+				}else{
 				GAMESTATE = Lose;
 			}
-		break;
-		case Win:
+			break;
+			case Win:
 			GAMESTATE = Win;
-		break;
-		case Lose:
+			break;
+			case Lose:
 			GAMESTATE = Lose;
-		break;
-		default: 
-		GAMESTATE = GL_Start; break;
-	}
+			break;
+			default:
+			GAMESTATE = GL_Start; break;
+		}
 
-	switch(GAMESTATE){ //State Actions
-		case GL_Start:
+		switch(GAMESTATE){ //State Actions
+			case GL_Start:
 			clearGrid();
 			for(unsigned char i = 0; i < 4; i++){
 				ledmatrix7219d88_resetmatrix(i);
@@ -180,23 +180,23 @@ void Tick_GameLogic(){
 			move = 0;
 			curr_row = 0x00;
 			cnt = 0;
-		break;
-		case Wait:
-		break;
-		case Oscillate:
+			break;
+			case Wait:
+			break;
+			case Oscillate:
 			move = 1;
-		break;
-		case Press:
+			break;
+			case Press:
 			move = 0;
-		break;
-		case Win:
+			break;
+			case Win:
 			move = 0;
-		break;
-		case Lose:
+			break;
+			case Lose:
 			move = 0;
-		break;
-		default:break;
-	}
+			break;
+			default:break;
+		}
 }
 
 void MovementSM_Tick(){
@@ -226,7 +226,7 @@ void MovementSM_Tick(){
 		}
 		break;
 		default:
-		MOVEMENTSTATE = Mm_Start;
+			MOVEMENTSTATE = Mm_Start;
 		break;
 	}
 	switch(MOVEMENTSTATE){ //Actions
