@@ -58,8 +58,8 @@ unsigned char LETTER_R[8] = {0x00,0x31,0x7b,0x4e,0x4c,0x7f,0x7f,0x00};
 unsigned char BLANK[8]    = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
 unsigned char grid[MAX_LEVEL];
-//unsigned char speeds[MAX_LEVEL] = {10,10,10,10,10,11,11,11,11,9,9,9,9,8,8,8,8,7,7,7,7,6,6,6,6,6,6,5,5,5,5,4}; //In terms of a 10ms Period
-unsigned char speeds[MAX_LEVEL] = {20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20}; //TESTER SPEED
+unsigned char speeds[MAX_LEVEL] = {10,10,10,10,10,11,11,11,11,9,9,9,9,8,8,8,8,7,7,7,7,6,6,6,6,6,6,5,5,5,5,4}; //In terms of a 10ms Period
+//unsigned char speeds[MAX_LEVEL] = {20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20}; //TESTER SPEED
 unsigned char sizes[MAX_LEVEL] = {3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1};
 unsigned char row_start[3] = {0x08,0x18,0x38};
 unsigned char level, size, row, blink_row, blink_flag;
@@ -93,8 +93,7 @@ unsigned char checkHitsAndGetSize(unsigned char row, unsigned char lvl){
 		if(lvl >= 25){
 			blink_flag = 1;
 			return 1;
-		}
-		else{
+		}else{
 			blink_flag = 0;
 			return 2;
 		}
@@ -103,8 +102,8 @@ unsigned char checkHitsAndGetSize(unsigned char row, unsigned char lvl){
 		if(lvl >= 14){
 			blink_flag = 1;
 			return 2;
-			}else{
-			blink_flag = 2;
+		}else{
+			blink_flag = 0;
 			return 3;
 		}
 		break;
@@ -201,16 +200,15 @@ void GL_Tick(){
 			if(new_size <= 0){
 				displayColumn(level,row);
 				GLSTATE = GL_Lose;
-				}else{
+			}else{
 				level++;
 				if(level == MAX_LEVEL){
 					GLSTATE = GL_Win;
-				}
-				else if(new_size == size || blink_flag){
+				}else if(new_size == size || blink_flag){
 					GLSTATE = GL_Move;
 					size = new_size;
 					row = row_start[size - 1];
-					}else{
+				}else{
 					GLSTATE = GL_Blink;
 					blink_row = row;
 					size = new_size;
@@ -404,23 +402,29 @@ void WN_Tick(){
 		counter = 0;
 		break;
 		case WN_Display:
+		counter++;
 		switch(counter){
-			case 0:
-			ledmatrix7219d88_setmatrix(3,LETTER_W);
-			break;
 			case 1:
-			ledmatrix7219d88_setmatrix(2,LETTER_I);
+			ledmatrix7219d88_setmatrix(0,LETTER_W);
 			break;
 			case 2:
-			ledmatrix7219d88_setmatrix(1,LETTER_N);
+			ledmatrix7219d88_setmatrix(1,LETTER_W);
+			ledmatrix7219d88_setmatrix(0,LETTER_I);
 			break;
 			case 3:
-			ledmatrix7219d88_resetmatrix(0);
+			ledmatrix7219d88_setmatrix(2,LETTER_W);
+			ledmatrix7219d88_setmatrix(1,LETTER_I);
+			ledmatrix7219d88_setmatrix(0,LETTER_N);
+			break;
+			case 4:
+			ledmatrix7219d88_setmatrix(3,LETTER_W);
+			ledmatrix7219d88_setmatrix(2,LETTER_I);
+			ledmatrix7219d88_setmatrix(1,LETTER_N);
+			ledmatrix7219d88_setmatrix(0,BLANK);
 			break;
 			default:
 			break;
 		}
-		counter++;
 		break;
 		case WN_Blink:
 		if(counter %2 == 0){
@@ -470,23 +474,29 @@ void LS_Tick(){
 		counter = 0;
 		break;
 		case LS_Display:
+		counter++;
 		switch(counter){
-			case 0:
-			ledmatrix7219d88_setmatrix(3,LETTER_L);
-			break;
 			case 1:
-			ledmatrix7219d88_setmatrix(2,LETTER_O);
+			ledmatrix7219d88_setmatrix(0,LETTER_L);
 			break;
 			case 2:
-			ledmatrix7219d88_setmatrix(1,LETTER_S);
+			ledmatrix7219d88_setmatrix(1,LETTER_L);
+			ledmatrix7219d88_setmatrix(0,LETTER_O);
 			break;
 			case 3:
+			ledmatrix7219d88_setmatrix(2,LETTER_L);
+			ledmatrix7219d88_setmatrix(1,LETTER_O);
+			ledmatrix7219d88_setmatrix(0,LETTER_S);
+			break;
+			case 4:
+			ledmatrix7219d88_setmatrix(3,LETTER_L);
+			ledmatrix7219d88_setmatrix(2,LETTER_O);
+			ledmatrix7219d88_setmatrix(1,LETTER_S);
 			ledmatrix7219d88_setmatrix(0,LETTER_E);
 			break;
 			default:
 			break;
 		}
-		counter++;
 		break;
 		case LS_Blink:
 		if(counter %2 == 0){
