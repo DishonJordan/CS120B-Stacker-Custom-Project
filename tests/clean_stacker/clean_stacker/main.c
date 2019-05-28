@@ -69,7 +69,6 @@ unsigned char play_button, reset_button;
 //GLOBAL FUNCTIONS
 #pragma region Functions
 unsigned char checkHitsAndGetSize(unsigned char row, unsigned char lvl){
-	//account for at a certain level the size max goes down
 	unsigned char count = 0;
 	unsigned char temp = row & grid[level - 1];
 	
@@ -93,7 +92,7 @@ unsigned char checkHitsAndGetSize(unsigned char row, unsigned char lvl){
 		if(lvl >= 25){
 			blink_flag = 1;
 			return 1;
-		}else{
+			}else{
 			blink_flag = 0;
 			return 2;
 		}
@@ -102,23 +101,23 @@ unsigned char checkHitsAndGetSize(unsigned char row, unsigned char lvl){
 		if(lvl >= 14){
 			blink_flag = 1;
 			return 2;
-		}else{
+			}else{
 			blink_flag = 0;
 			return 3;
 		}
 		break;
 		default:
-		//DEBUG LED
 		break;
 	}
 
 	return count;
 }
 void setGridRow(unsigned char row, unsigned char lvl){
-	if(lvl > 0)
-	grid[lvl] = row & grid[lvl - 1];
-	else
-	grid[lvl] = row;
+	if(lvl > 0){
+		grid[lvl] = row & grid[lvl - 1];
+	}else{
+		grid[lvl] = row;
+	}
 }
 void clearGrid(){
 	for(unsigned char i = 0; i < MAX_LEVEL; i++){
@@ -129,14 +128,12 @@ unsigned char GetBit(unsigned char x, unsigned char k) {
 	return ((x & (0x01 << k)) != 0);
 }
 void displayColumn(unsigned char col, unsigned char value){
-
 	unsigned char start_loc = 8*col % 64;
 	unsigned char matrix_num = 8*col / 64;
 
 	for(int i = 0; i < 8; i++){
 		ledmatrix7219d88_setled(matrix_num,start_loc + i, GetBit(value,i));
 	}
-
 }
 #pragma endregion Functions
 //STATE MACHINES
@@ -149,7 +146,7 @@ void GL_Tick(){
 		case GL_Reset:
 		if(reset_button){
 			GLSTATE = GL_Reset;
-			}else{
+		}else{
 			GLSTATE = GL_Start;
 		}
 		break;
@@ -163,9 +160,9 @@ void GL_Tick(){
 		case GL_Wait:
 		if(reset_button){
 			GLSTATE = GL_Reset;
-			}else if(play_button){
+		}else if(play_button){
 			GLSTATE = GL_Wait;
-			}else{
+		}else{
 			GLSTATE = GL_Move;
 		}
 		break;
@@ -173,27 +170,28 @@ void GL_Tick(){
 		if(reset_button){
 			move = 0;
 			GLSTATE = GL_Reset;
-			}else if(play_button){
+		}else if(play_button){
 			move = 0;
 			GLSTATE = GL_Pressed;
-			}else{
+		}else{
 			GLSTATE = GL_Move;
 		}
 		break;
 		case GL_Pressed:
 		if(reset_button){
 			GLSTATE = GL_Reset;
-			}else if(play_button){
+		}else if(play_button){
 			GLSTATE = GL_Pressed;
-			}else{
+		}else{
 			GLSTATE = GL_Check;
 		}
 		break;
 		case GL_Check:
 		if(reset_button){
 			GLSTATE = GL_Reset;
-			}else{
+		}else{
 			new_size = checkHitsAndGetSize(row,level);
+
 			setGridRow(row,level);
 			displayColumn(level,grid[level]);
 
@@ -287,20 +285,20 @@ void MM_Tick(){
 		case MM_Right:
 		if(!move){
 			MMSTATE = MM_Start;
-			}else if(row & 0x01){
+		}else if(row & 0x01){
 			MMSTATE = MM_Left;
 			cnt = 0;
-			}else{
+		}else{
 			MMSTATE = MM_Right;
 		}
 		break;
 		case MM_Left:
 		if(!move){
 			MMSTATE = MM_Start;
-			}else if(row & 0x80){
+		}else if(row & 0x80){
 			MMSTATE = MM_Right;
 			cnt = 0;
-			}else{
+		}else{
 			MMSTATE = MM_Left;
 		}
 		break;
@@ -360,12 +358,10 @@ void BL_Tick(){
 
 		if(counter % 2 == 0){
 			displayColumn(level - 1, blink_row);
-			}else{
+		}else{
 			displayColumn(level - 1, grid[level-1]);
 		}
 		counter++;
-
-		
 		break;
 		default:
 		break;
@@ -384,10 +380,10 @@ void WN_Tick(){
 		case WN_Display:
 		if(!win){
 			WNSTATE = WN_Wait;
-			}else if(counter > 4){
+		}else if(counter > 4){
 			WNSTATE = WN_Blink;
 			counter = 0;
-			}else{
+		}else{
 			WNSTATE = WN_Display;
 		}
 		break;
@@ -456,10 +452,10 @@ void LS_Tick(){
 		case LS_Display:
 		if(!lose){
 			LSSTATE = LS_Wait;
-			}else if(counter > 4){
+		}else if(counter > 4){
 			LSSTATE = LS_Blink;
 			counter = 0;
-			}else{
+		}else{
 			LSSTATE = LS_Display;
 		}
 		break;
@@ -652,11 +648,11 @@ int main(void)
 		play_button = ~PINA & 0x01;
 		reset_button  = ~PINA & 0x02;
 
-		if(GL_elapsedTime >= 1){ //10ms period
+		if(GL_elapsedTime >= 10){ //10ms period
 			GL_Tick();
 			GL_elapsedTime = 0;
 		}
-		if(MM_elapsedTime >= 1){ //10ms period
+		if(MM_elapsedTime >= 10){ //10ms period
 			MM_Tick();
 			MM_elapsedTime = 0;
 		}
